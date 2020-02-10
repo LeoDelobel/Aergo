@@ -10,7 +10,7 @@ namespace AERGO
     {
         private int lignes;
         private int colonnes;
-        private double[,] valeurs; // Les valeurs sont un tableau 2D
+        public double[,] valeurs; // Les valeurs sont un tableau 2D
         Random R = new Random();
 
         public Matrice(int l, int c) // Constructeur
@@ -127,6 +127,39 @@ namespace AERGO
             return sortie;
         }
 
+        public Matrice FromArrayVector(double[] val)
+        {
+            Matrice sortie = new Matrice(val.Length, 1);
+            for (int i = 0; i < lignes; i++)
+            {
+                sortie.valeurs[i, 0] = val[i]; // On exécute cette méthode sur chaque case
+            }
+            return sortie;
+        }
+
+        public double[] ToArrayVector()
+        {
+            double[] sortie = new double[lignes];
+            for (int i = 0; i < lignes; i++)
+            {
+                sortie[i] = valeurs[i, 0]; // On exécute cette méthode sur chaque case
+            }
+            return sortie;
+        }
+
+        public Matrice Substract(Matrice val)
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] -= val.valeurs[i, n]; // On exécute cette méthode sur chaque case
+                }
+            }
+            return sortie;
+        }
+
         public Matrice Function(Func<double, double> val) // On prend une méthode en paramètre
         {
             Matrice sortie = this.Copy();
@@ -160,7 +193,7 @@ namespace AERGO
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    sortie.valeurs[i, n] *= autre.valeurs[n, 0]; // On multiplie chaque case par la même case de l'autre matrice
+                     sortie.valeurs[i, n] *= autre.valeurs[n, 0]; // On multiplie chaque case par la même case de l'autre matrice
                 }
             }
             return sortie;

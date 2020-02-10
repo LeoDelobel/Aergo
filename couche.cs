@@ -8,9 +8,10 @@ namespace AERGO
 {
     class Couche
     {
-        private Matrice inputs;
-        private Matrice weights;
-        private Matrice output;
+        private bool DEBUG = false;
+        public Matrice inputs;
+        public Matrice weights;
+        public Matrice output;
 
         public Couche(int n, int i)
         // i définit le nombre d'entrées par neurone
@@ -25,20 +26,38 @@ namespace AERGO
         public Matrice Feed(Matrice i) // i est le vecteur d'entrées
         {
             inputs = i.Copy();
-            inputs.Print();
+            if (DEBUG)
+            {
+                inputs.Print();
+            }
             Matrice buffer = weights.Multiply(inputs); // On multiplie les entrées par les poids
-            buffer.Print();
-            buffer = buffer.Sum();
-            buffer.Print();
-            buffer = buffer.Function(Sigmoid);
-            buffer.Print();
+            if (DEBUG)
+            {
+                buffer.Print();
+            }
+            buffer = buffer.Sum(); // On en fait la somme
+            if (DEBUG)
+            {
+                buffer.Print();
+            }
+            buffer = buffer.Function(Sigmoid); // On fait passer le buffer dans la fonction d'activation (sigmoid)
+            if (DEBUG)
+            {
+                buffer.Print();
+            }
 
+            output = buffer.Copy();
             return buffer;
         }
 
         public static double Sigmoid(double val)
         {
             return (float)(1.0 / (1.0 + Math.Pow(Math.E, -val)));
+        }
+
+        public static double Sigmoid_Prime(double val)
+        {
+            return (float)Sigmoid(val) * (1 - Sigmoid(val));
         }
     }
 }
