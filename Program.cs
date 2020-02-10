@@ -10,12 +10,14 @@ namespace AERGO
     {
         static void Main(string[] args)
         {
-            Matrice test = new Matrice(2, 3);
-            test.Randomize();
-            test.Print();
-            Console.WriteLine();
-            test.Transpose().Print();
+            Couche test = new Couche(2, 1);
 
+            Matrice input = new Matrice(1, 1);
+            input.Fill(2);
+
+            test.Feed(input);
+
+            //          -----------
             Console.Read();
         }
     }
