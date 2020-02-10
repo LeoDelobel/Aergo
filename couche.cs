@@ -22,7 +22,7 @@ namespace AERGO
             output = new Matrice(1, n);
         }
 
-        public void Feed(Matrice i) // i est le vecteur d'entrées
+        public Matrice Feed(Matrice i) // i est le vecteur d'entrées
         {
             inputs = i.Copy();
             inputs.Print();
@@ -32,6 +32,8 @@ namespace AERGO
             buffer.Print();
             buffer = buffer.Function(Sigmoid);
             buffer.Print();
+
+            return buffer;
         }
 
         public static double Sigmoid(double val)

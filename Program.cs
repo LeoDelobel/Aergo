@@ -10,12 +10,10 @@ namespace AERGO
     {
         static void Main(string[] args)
         {
-            Couche test = new Couche(2, 1);
-
-            Matrice input = new Matrice(1, 1);
-            input.Fill(2);
-
-            test.Feed(input);
+            Reseau test = new Reseau(10, new int[] { 2 }, 10);
+            Matrice i = new Matrice(10, 1);
+            i.Fill(2);
+            test.Feed(i);
 
             //          -----------
             Console.Read();
