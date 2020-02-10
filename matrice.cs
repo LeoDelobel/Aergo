@@ -18,6 +18,8 @@ namespace AERGO
             lignes = l;
             colonnes = c;
             valeurs = new double[l,c]; // Initialisation du tableau 2D
+
+            Fill(0); // On remplit à 0
         }
 
         public void Fill(double val)
@@ -60,7 +62,6 @@ namespace AERGO
         public Matrice Transpose()
         {
             Matrice sortie = new Matrice(colonnes, lignes); // On crée la matrice de sortie
-
             for (int i = 0; i < lignes; i++)
             {
                 for (int n = 0; n < colonnes; n++)
@@ -72,37 +73,111 @@ namespace AERGO
             return sortie; // On retourne la matrice
         }
 
-        public void Scalar(double val)
+        public Matrice Scalar(double val)
         {
+            Matrice sortie = this.Copy(); // On copie cette matrice
             for (int i = 0; i < lignes; i++)
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    valeurs[i, n] *= val;
+                    valeurs[i, n] *= val; // On multiplie une valeur à toutes les cases
                 }
             }
+            return sortie;
         }
 
-        public void Add(double val)
+        public Matrice Val_Add(double val)
         {
+            Matrice sortie = this.Copy(); // On copie cette matrice
             for (int i = 0; i < lignes; i++)
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    valeurs[i, n] += val;
+                    sortie.valeurs[i, n] += val; // On ajoute une valeur à toutes les cases
                 }
             }
+            return sortie;
         }
 
-        public void Multiply(Matrice autre)
+        public Matrice Add(Matrice val)
         {
+            Matrice sortie = this.Copy(); // On copie cette matrice
             for (int i = 0; i < lignes; i++)
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    valeurs[i, n] *= autre.valeurs[n, 0];
+                    sortie.valeurs[i, n] += val.valeurs[i, n]; // On ajoute la case de l'autre matrice à toutes les cases ici
                 }
             }
+            return sortie;
+        }
+
+        public Matrice Copy()
+        {
+            Matrice sortie = new Matrice(lignes, colonnes);
+
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] = valeurs[i, n]; // On copie les valeurs
+                }
+            }
+
+            return sortie;
+        }
+
+        public Matrice Function(Func<double, double> val) // On prend une méthode en paramètre
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] = val(sortie.valeurs[i, n]); // On exécute cette méthode sur chaque case
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Sum()
+        {
+            Matrice sortie = new Matrice(lignes, 1);
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, 0] += valeurs[i, n]; // On multiplie chaque case par la même case de l'autre matrice
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Multiply(Matrice autre)
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] *= autre.valeurs[n, 0]; // On multiplie chaque case par la même case de l'autre matrice
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Vector(Matrice val)
+        {
+            Matrice sortie = this.Copy();
+            Matrice autre = val.Copy().Transpose(); // On transpose le vecteur (Plus simple)
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] *= autre.valeurs[0, n]; // On multiplie par le vecteur
+                }
+            }
+            return sortie;
         }
 
         public void Print()
@@ -115,6 +190,7 @@ namespace AERGO
                     Console.Write(Convert.ToString(valeurs[i, n]) + "|");
                 }
             }
+            Console.WriteLine('\n');
         }
     }
 }
