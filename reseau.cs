@@ -12,7 +12,7 @@ namespace AERGO
         Matrice input;
         Couche[] couches;
         Matrice output;
-        private double learning_rate = 0.01;
+        private double learning_rate = 0.5;
 
         public Reseau(int nb_i, int[] nb_c, int nb_o)
             //nb_i : Nombre d'entrées
@@ -74,10 +74,12 @@ namespace AERGO
 
         public void Train(Matrice val, Matrice ideal)
         {
-            Matrice actual = Feed(val);
+            Matrice actual = Feed(val).Copy();
 
+            // INUTILE :
             double total_error = actual.Copy().Substract(ideal).Transpose().Multiply(actual).Function(Diviser).Sum().ToArrayVector()[0];
             // On calcule l'erreur totale (Une belle ligne)
+
             Matrice relative_error = actual.Copy().Substract(ideal); // L'erreur relative
             Matrice derivative = actual.Copy().Function(Sigmoid_Prime); // La dérivative
             if (DEBUG)
@@ -97,24 +99,37 @@ namespace AERGO
              *                                                              [ .      ]
              */
 
-            double[,] poids = couches[couches.Length - 1].weights.ToArray();
-            for(int i = 0; i < poids.GetLength(0); i++)
-            {
-                for(int n = 0; n < poids.GetLength(1); n++)
-                {
-                    double error = relative_error.ToArrayVector()[i] * derivative.ToArrayVector()[i] * respect_input.ToArrayVector()[n];
-                    // On calcule l'entièreté de l'erreur
-                    poids[i, n] -= learning_rate * error;
-                    // On modifie les poids de manière à réduire le gradient
-                }
-            }
-            couches[couches.Length - 1].weights.FromArray(poids); // On remet les poids en place
+            Matrice buff = couches[couches.Length - 1].weights.Copy();
+            buff.Fill(1);
+            buff = buff.MultiplyHorizontalVector(relative_error).MultiplyHorizontalVector(derivative).Vector(respect_input).Scalar(learning_rate);
+            couches[couches.Length - 1].buffer = couches[couches.Length - 1].weights.Copy().Substract(buff); // On remplace les poids
+
             if (DEBUG)
             {
+                Console.WriteLine("------------------------ :");
                 couches[couches.Length - 1].weights.Print();
             }
 
+            couches[couches.Length - 1].UpdateWeights();
 
+            // ----------------------COUCHE H-----------------
+
+            /**
+            relative_error = relative_error.MultiplyHorizontalVector(derivative);
+
+            total_error = relative_error.Copy().Sum().ToArrayVector()[0];
+            derivative = couches[couches.Length - 2].output.Copy().Function(Sigmoid_Prime);
+            respect_input = input.Copy();
+
+            buff = couches[couches.Length - 2].weights.Copy();
+            buff.Fill(1);
+            buff = buff.MultiplyHorizontalVector(relative_error).MultiplyHorizontalVector(derivative).Vector(respect_input);
+            couches[couches.Length - 2].weights = couches[couches.Length - 2].weights.Scalar(learning_rate).Substract(buff); // On remplace les poids
+            **/
+
+            // -----------------------------------------------
+
+            
         }
     }
 }

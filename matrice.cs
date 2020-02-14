@@ -59,6 +59,21 @@ namespace AERGO
             return valeurs; // On donne le tableau de valeurs
         }
 
+        public Matrice MultiplyHorizontalVector(Matrice val)
+        {
+            // Multiplie de droite à gauche plutot que de haut en bas
+            Matrice sortie = this.Copy();
+            Matrice autre = val.Copy(); // On ne transpose pas le vecteur (Plus simple)
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] *= autre.valeurs[i, 0]; // On multiplie par le vecteur
+                }
+            }
+            return sortie;
+        }
+
         public Matrice Transpose()
         {
             Matrice sortie = new Matrice(colonnes, lignes); // On crée la matrice de sortie
