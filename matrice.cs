@@ -59,6 +59,8 @@ namespace AERGO
             return valeurs; // On donne le tableau de valeurs
         }
 
+
+
         public Matrice MultiplyHorizontalVector(Matrice val)
         {
             // Multiplie de droite à gauche plutot que de haut en bas
@@ -69,6 +71,46 @@ namespace AERGO
                 for (int n = 0; n < colonnes; n++)
                 {
                     sortie.valeurs[i, n] *= autre.valeurs[i, 0]; // On multiplie par le vecteur
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Power(double p)
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    Math.Pow(sortie.valeurs[i, n], p); // On multiplie chaque case
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Activate()
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    if (sortie.valeurs[i, n] >= 0) sortie.valeurs[i, n] = 1;
+                    if (sortie.valeurs[i, n] < 0) sortie.valeurs[i, n] = -1;
+                }
+            }
+            return sortie;
+        }
+
+        public Matrice Inverse()
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] *= -1;
                 }
             }
             return sortie;
@@ -175,6 +217,19 @@ namespace AERGO
             return sortie;
         }
 
+        public Matrice MultiplyExact(Matrice val)
+        {
+            Matrice sortie = this.Copy();
+            for (int i = 0; i < lignes; i++)
+            {
+                for (int n = 0; n < colonnes; n++)
+                {
+                    sortie.valeurs[i, n] *= val.valeurs[i, n]; // On exécute cette méthode sur chaque case
+                }
+            }
+            return sortie;
+        }
+
         public Matrice Function(Func<double, double> val) // On prend une méthode en paramètre
         {
             Matrice sortie = this.Copy();
@@ -234,6 +289,20 @@ namespace AERGO
             {
                 Console.Write('\n');
                 for(int n = 0; n < colonnes; n++)
+                {
+                    Console.Write(Convert.ToString(valeurs[i, n]) + "|");
+                }
+            }
+            Console.WriteLine('\n');
+        }
+
+        public void Debug(string val)
+        {
+            Console.Write("----------------- " + val + " ----------------------");
+            for (int i = 0; i < lignes; i++)
+            {
+                Console.Write('\n');
+                for (int n = 0; n < colonnes; n++)
                 {
                     Console.Write(Convert.ToString(valeurs[i, n]) + "|");
                 }
