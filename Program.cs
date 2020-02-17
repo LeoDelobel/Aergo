@@ -10,32 +10,25 @@ namespace AERGO
     {
         static void Main(string[] args)
         {
+            int nb_i = 3; // Nombre d'entrées (et de sorties)
+
+            Reseau test = new Reseau(nb_i, new int[] { 15 }, nb_i);
+
+            Console.WriteLine();
             while (true)
             {
-                int nb_i = 1; // Nombre d'entrées (et de sorties)
-
-                Reseau test = new Reseau(nb_i, new int[] { 5 }, nb_i);
-
                 Matrice i = new Matrice(nb_i, 1); // Matrice d'entrée
-                i = i.FromArrayVector(new double[] { 1 });
-                Console.WriteLine("Avant :");
-                test.Feed(i).Print(); // Sortie du réseau
-                for (int n = 0; n < 30; n++)
-                {
-                    Matrice o = new Matrice(nb_i, 1);
-                    o = o.FromArrayVector(new double[] { 1 });
-                    test.Train(i, o);
+                i = i.FromArrayVector(new double[] { 1, 1, 1 });
+                Matrice o = new Matrice(nb_i, 1);
+                o = o.FromArrayVector(new double[] { 1, 0, 1 }); // Matrice de sortie
 
-                    Console.WriteLine("Après :");
-                    test.Feed(i).Print(); // Sortie du réseau
+                test.Train(i, o);
 
-                    Console.WriteLine("-------------------------------- :");
-                }
+                Console.WriteLine();
+                Console.WriteLine("-------------------------------- :");
                 Console.ReadLine();
             } 
-
-            //          -----------
-            
+                            // ------------------------------------------------------------
         }
     }
 }

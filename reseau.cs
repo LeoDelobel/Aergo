@@ -72,64 +72,64 @@ namespace AERGO
             return (float)Sigmoid(val) * (1 - Sigmoid(val));
         }
 
-        public void Train(Matrice val, Matrice ideal)
+        public void Train(Matrice val, Matrice Yattendu)
         {
-            Matrice actual = Feed(val).Copy();
+            Matrice Ysortie = Feed(val);
 
-            // INUTILE :
-            double total_error = actual.Copy().Substract(ideal).Transpose().Multiply(actual).Function(Diviser).Sum().ToArrayVector()[0];
-            // On calcule l'erreur totale (Une belle ligne)
+            // Selon la formule E = Ysortie - Yattendu :
 
-            Matrice relative_error = actual.Copy().Substract(ideal); // L'erreur relative
-            Matrice derivative = actual.Copy().Function(Sigmoid_Prime); // La dérivative
-            if (DEBUG)
+            // Ysortie - Yattendu :
+            Matrice E = Ysortie.Copy().Substract(Yattendu); // VERT
+
+            // Selon la formule E_X = d/dx f(x) E :
+            Matrice E_X = E.Copy();
+            E_X = E_X.Function(Sigmoid_Prime); // JAUNE
+
+            // Selon la formule E_W = y * E_X :
+            Matrice E_W = E_X.Copy();
+            double[] E_W_d = E_X.ToArrayVector();
+
+            // Selon le procédé Delta :
+            Matrice Y = couches[couches.Length - 2].output;
+            double[] Y_d = Y.ToArrayVector();
+
+            Matrice E_D = couches[couches.Length - 1].weights.Copy(); E_D.Fill(0); // Matrice vide pour accueillir les dérivées d'erreurs
+            double[,] E_D_d = E_D.ToArray();
+
+            E.Debug("Erreur");
+
+            for (int i = 0; i < couches[couches.Length - 1].nombre_neurones; i++) // Pour chaque erreur calculée
             {
-                Console.WriteLine(total_error);
-                relative_error.Print();
-                derivative.Print();
-                couches[couches.Length - 1].weights.Print();
+                for (int n = 0; n < couches[couches.Length - 2].nombre_neurones; n++)
+                {
+                    E_D_d[i, n] = E_W_d[i] * Y_d[n];
+                    // Voir procédé Delta sur feuille
+                }
             }
-            Matrice respect_input = couches[couches.Length - 2].output; // L'entrée respective, sortie de la couche précédente
 
-            // Exemple : Les signes correspondants sont reliés ( W -= n * (E1 * E2 * I))
+            E_D.FromArray(E_D_d);
 
-            /**
-             *  W : [ O B .. ] E1:   [ O et B ] E2:     [ O et B ] I:       [ O et C ]
-             *      [ C..    ]       [ C      ]         [ C    ]            [ B      ]
-             *                                                              [ .      ]
-             */
+            E_D = E_D.Scalar(learning_rate);
 
-            Matrice buff = couches[couches.Length - 1].weights.Copy();
-            buff.Fill(1);
-            buff = buff.MultiplyHorizontalVector(relative_error).MultiplyHorizontalVector(derivative).Vector(respect_input).Scalar(learning_rate);
-            couches[couches.Length - 1].buffer = couches[couches.Length - 1].weights.Copy().Substract(buff); // On remplace les poids
+            Matrice activation = E.Activate().Inverse();
 
-            if (DEBUG)
-            {
-                Console.WriteLine("------------------------ :");
-                couches[couches.Length - 1].weights.Print();
-            }
+            E_D = E_D.MultiplyHorizontalVector(activation);
+
+            couches[couches.Length - 1].buffer = couches[couches.Length - 1].weights.Copy().Add(E_D);
+
+            // Selon le procédé Delta 2 :
+            Matrice new_E_X = couches[couches.Length - 1].weights.Copy().MultiplyHorizontalVector(E_X).Transpose().Sum();
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
+            //                                                                                                                  "La boucle est bouclée"
 
             couches[couches.Length - 1].UpdateWeights();
 
-            // ----------------------COUCHE H-----------------
-
-            /**
-            relative_error = relative_error.MultiplyHorizontalVector(derivative);
-
-            total_error = relative_error.Copy().Sum().ToArrayVector()[0];
-            derivative = couches[couches.Length - 2].output.Copy().Function(Sigmoid_Prime);
-            respect_input = input.Copy();
-
-            buff = couches[couches.Length - 2].weights.Copy();
-            buff.Fill(1);
-            buff = buff.MultiplyHorizontalVector(relative_error).MultiplyHorizontalVector(derivative).Vector(respect_input);
-            couches[couches.Length - 2].weights = couches[couches.Length - 2].weights.Scalar(learning_rate).Substract(buff); // On remplace les poids
-            **/
-
-            // -----------------------------------------------
-
-            
+            Console.Read();
         }
     }
 }

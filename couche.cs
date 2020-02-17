@@ -13,6 +13,7 @@ namespace AERGO
         public Matrice weights;
         public Matrice output;
         public Matrice buffer;
+        public int nombre_neurones;
 
         public Couche(int n, int i)
         // i définit le nombre d'entrées par neurone
@@ -22,6 +23,7 @@ namespace AERGO
             weights = new Matrice(n, i);
             weights.Randomize();
             output = new Matrice(1, n);
+            nombre_neurones = n;
         }
 
         public void UpdateWeights()
