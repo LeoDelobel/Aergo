@@ -24,11 +24,12 @@ namespace AERGO
             weights.Randomize();
             output = new Matrice(1, n);
             nombre_neurones = n;
+            buffer = weights;
         }
 
         public void UpdateWeights()
         {
-            weights = buffer.Copy();
+            this.weights = this.weights.Add(buffer);
         }
 
         public Matrice Feed(Matrice i) // i est le vecteur d'entrées

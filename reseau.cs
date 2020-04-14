@@ -12,7 +12,8 @@ namespace AERGO
         Matrice input;
         Couche[] couches;
         Matrice output;
-        private double learning_rate = 0.5;
+        public double mean_error = 0;
+        public double learning_rate = 0.1;
 
         public Reseau(int nb_i, int[] nb_c, int nb_o)
             //nb_i : Nombre d'entrées
@@ -27,7 +28,7 @@ namespace AERGO
             {
                 couches[i] = new Couche(nb_c[i], nb_c[i-1]); // Autant d'entrées que le nombre de neurones précédents
             }
-            couches[couches.Length-1] = new Couche(nb_o, nb_c[nb_c.Length-1]);
+            couches[couches.Length-1] = new Couche(nb_o, nb_c[nb_c.Length-1]); // Couche de sortie
         }
 
         public void SetLearningRate(double val)
@@ -35,8 +36,17 @@ namespace AERGO
             learning_rate = val;
         }
 
-        public Matrice Feed(Matrice val)
+        public Matrice Calculate_Error(double[] entree, double[] voulu)
         {
+            Matrice Yattendu = new Matrice(voulu.Length, 1).FromArrayVector(voulu);
+
+            return Feed(entree).Substract(Yattendu).Transpose().Sum();
+        }
+
+        public Matrice Feed(double[] entree)
+        {
+            Matrice val = new Matrice(entree.Length, 1).FromArrayVector(entree);
+
             input = val.Copy();
             Matrice buffer = couches[0].Feed(input); // Première couche
             if (DEBUG)
@@ -72,64 +82,98 @@ namespace AERGO
             return (float)Sigmoid(val) * (1 - Sigmoid(val));
         }
 
-        public void Train(Matrice val, Matrice Yattendu)
+        public static double DeSigmoid(double val)
         {
-            Matrice Ysortie = Feed(val);
+            return (val * (1 - val));
+        }
 
-            // Selon la formule E = Ysortie - Yattendu :
+        public void Train(double[] entree, double[] attendu)
+        {
 
-            // Ysortie - Yattendu :
-            Matrice E = Ysortie.Copy().Substract(Yattendu); // VERT
+            Matrice val = new Matrice(entree.Length, 1).FromArrayVector(entree);
 
-            // Selon la formule E_X = d/dx f(x) E :
-            Matrice E_X = E.Copy();
-            E_X = E_X.Function(Sigmoid_Prime); // JAUNE
+            Matrice Yattendu = new Matrice(attendu.Length, 1).FromArrayVector(attendu);
 
-            // Selon la formule E_W = y * E_X :
-            Matrice E_W = E_X.Copy();
-            double[] E_W_d = E_X.ToArrayVector();
+            this.input = val;
+            Matrice Ysortie = Feed(entree);
 
-            // Selon le procédé Delta :
-            Matrice Y = couches[couches.Length - 2].output;
-            double[] Y_d = Y.ToArrayVector();
+            int nombre_h = this.couches.Length - 1; // Nombre de couches cachées (donc, sans compter la couche de sortie)
 
-            Matrice E_D = couches[couches.Length - 1].weights.Copy(); E_D.Fill(0); // Matrice vide pour accueillir les dérivées d'erreurs
-            double[,] E_D_d = E_D.ToArray();
+            // Selon la formule E = Yattendu - Ysortie :
+            // Calculons l'erreur
 
-            E.Debug("Erreur");
+            Matrice erreur_sortie = Yattendu.Substract(Ysortie);
+            double[] buffer = erreur_sortie.ToArrayVector();
+            this.mean_error = buffer.Average();
 
-            for (int i = 0; i < couches[couches.Length - 1].nombre_neurones; i++) // Pour chaque erreur calculée
+            // Calcul du gradient
+
+            Matrice gradient = Ysortie.Copy();
+            gradient = gradient.Function(DeSigmoid);
+            gradient = gradient.MultiplyExact(erreur_sortie);
+            gradient = gradient.Scalar(this.learning_rate);
+
+            // Sortie de la couche précédente :
+            // this.couches[this.couches.Length - 2].output
+
+            // Calcul du Delta
+
+            Matrice buff = this.couches[this.couches.Length - 2].output.Copy().Transpose();
+
+            Matrice deltas = gradient.MultiplyVectors(buff);
+
+            this.couches[this.couches.Length - 1].buffer = deltas.Copy();
+            this.couches[this.couches.Length - 1].UpdateWeights();
+
+            // ------------------------------ COUCHE MILIEU ---------------------
+            // ------------------------------ LA BOUCLE COMMENCE ----------------
+
+            Matrice erreur_prec = erreur_sortie.Copy();
+
+            for (int i = 1; i <= nombre_h - 1; i++)
             {
-                for (int n = 0; n < couches[couches.Length - 2].nombre_neurones; n++)
-                {
-                    E_D_d[i, n] = E_W_d[i] * Y_d[n];
-                    // Voir procédé Delta sur feuille
-                }
+                int index = this.couches.Length - 1 - i;
+
+                // Poids de la couche suivante :
+                // this.couches[index + 1].weights (espérons)
+
+                Matrice poids_T = this.couches[index + 1].weights.Transpose();
+                erreur_prec = poids_T.Vector(erreur_prec); // Erreur de cette couche
+
+                gradient = this.couches[index].output.Copy();
+                gradient = gradient.Function(DeSigmoid);
+                gradient = gradient.MultiplyExact(erreur_prec);
+                gradient = gradient.Scalar(this.learning_rate);
+
+                buff = this.couches[index - 1].output.Copy().Transpose();
+
+                deltas = gradient.MultiplyVectors(buff);
+
+                this.couches[index].buffer = deltas.Copy();
+                this.couches[index].UpdateWeights();
             }
 
-            E_D.FromArray(E_D_d);
+            // ------------------------------ PREMIERE COUCHE ----------------
 
-            E_D = E_D.Scalar(learning_rate);
+            // Poids de la couche suivante :
+            // this.couches[index + 1].weights (espérons)
 
-            Matrice activation = E.Activate().Inverse();
+            Matrice poids_T_ = this.couches[1].weights.Transpose();
+            erreur_prec = poids_T_.Vector(erreur_prec); // Erreur de cette couche
 
-            E_D = E_D.MultiplyHorizontalVector(activation);
+            gradient = this.couches[0].output.Copy();
+            gradient = gradient.Function(DeSigmoid);
+            gradient = gradient.MultiplyExact(erreur_prec);
+            gradient = gradient.Scalar(this.learning_rate);
 
-            couches[couches.Length - 1].buffer = couches[couches.Length - 1].weights.Copy().Add(E_D);
+            buff = this.input.Copy().Transpose();
 
-            // Selon le procédé Delta 2 :
-            Matrice new_E_X = couches[couches.Length - 1].weights.Copy().MultiplyHorizontalVector(E_X).Transpose().Sum();
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
-            //                                                                                                                  "La boucle est bouclée"
+            deltas = gradient.MultiplyVectors(buff);
 
-            couches[couches.Length - 1].UpdateWeights();
-
-            Console.Read();
+            this.couches[0].buffer = deltas.Copy();
+            this.couches[0].UpdateWeights();
         }
+
+
     }
 }

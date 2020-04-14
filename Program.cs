@@ -10,25 +10,39 @@ namespace AERGO
     {
         static void Main(string[] args)
         {
-            int nb_i = 3; // Nombre d'entrées (et de sorties)
+            bool LOG_DATA = false;
 
-            Reseau test = new Reseau(nb_i, new int[] { 15 }, nb_i);
+            Reseau test = new Reseau(2, new int[] { 5 }, 1);
+            test.SetLearningRate(0.1);
 
             Console.WriteLine();
+
+            string data = "";
+
+            int iteration = 0;
             while (true)
             {
-                Matrice i = new Matrice(nb_i, 1); // Matrice d'entrée
-                i = i.FromArrayVector(new double[] { 1, 1, 1 });
-                Matrice o = new Matrice(nb_i, 1);
-                o = o.FromArrayVector(new double[] { 1, 0, 1 }); // Matrice de sortie
+                for (int i = 0; i < 100; i++)
+                {
+                    test.Train(new double[] { 0, 0 }, new double[] { 1 });
+                    test.Train(new double[] { 0, 1 }, new double[] { 1 });
+                    test.Train(new double[] { 1, 0 }, new double[] { 0 });
+                    test.Train(new double[] { 1, 1 }, new double[] { 0 });
 
-                test.Train(i, o);
+                    Console.WriteLine("Sortie (Itération " + (iteration + 1) + ") :");
+                    Console.WriteLine(Math.Abs(test.mean_error));
+                    Console.WriteLine("-----");
 
-                Console.WriteLine();
-                Console.WriteLine("-------------------------------- :");
-                Console.ReadLine();
-            } 
-                            // ------------------------------------------------------------
+                    data += (Convert.ToString(Math.Abs(test.mean_error))) + '\n';
+
+                    iteration++;
+                }
+
+                Console.Read();
+            }
+
+            if(LOG_DATA) System.IO.File.WriteAllText(@"R:\4 - travail\Projet\aergo_data_" + test.learning_rate + ".txt", data);
+            // ------------------------------------------------------------
         }
     }
 }

@@ -59,7 +59,21 @@ namespace AERGO
             return valeurs; // On donne le tableau de valeurs
         }
 
-
+        public Matrice MultiplyVectors(Matrice val)
+        {
+            // Nouvelle matrice carré
+            Matrice sortie = new Matrice(this.lignes, val.colonnes);
+            Matrice ceci = this.Copy();
+            Matrice autre = val.Copy();
+            for (int i = 0; i < sortie.lignes; i++)
+            {
+                for (int n = 0; n < sortie.colonnes; n++)
+                {
+                    sortie.valeurs[i, n] = ceci.valeurs[i, 0] * autre.valeurs[0, n]; // On utilise le vecteur pour vaincre le vecteur
+                }
+            }
+            return sortie;
+        }
 
         public Matrice MultiplyHorizontalVector(Matrice val)
         {
@@ -137,7 +151,7 @@ namespace AERGO
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    valeurs[i, n] *= val; // On multiplie une valeur à toutes les cases
+                    sortie.valeurs[i, n] *= val; // On multiplie une valeur à toutes les cases
                 }
             }
             return sortie;
@@ -163,7 +177,7 @@ namespace AERGO
             {
                 for (int n = 0; n < colonnes; n++)
                 {
-                    sortie.valeurs[i, n] += val.valeurs[i, n]; // On ajoute la case de l'autre matrice à toutes les cases ici
+                    sortie.valeurs[i, n] += val.valeurs[i, n]; // On ajoute la case de l'autre matrice à la case ici
                 }
             }
             return sortie;
