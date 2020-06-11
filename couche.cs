@@ -1,19 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AERGO
 {
-    class Couche
+    public class Couche
     {
-        private bool DEBUG = false;
-        public Matrice inputs;
         public Matrice weights;
-        public Matrice output;
-        public Matrice buffer;
         public int nombre_neurones;
+
+        [JsonIgnore]
+        public Matrice buffer;
+        [JsonIgnore]
+        public Matrice inputs;
+        [JsonIgnore]
+        public Matrice output;
+        [JsonIgnore]
+        private bool DEBUG = true;
 
         public Couche(int n, int i)
         // i définit le nombre d'entrées par neurone
@@ -27,6 +29,11 @@ namespace AERGO
             buffer = weights;
         }
 
+        public Couche()
+        {
+            
+        }
+
         public void UpdateWeights()
         {
             this.weights = this.weights.Add(buffer);
@@ -37,22 +44,22 @@ namespace AERGO
             inputs = i.Copy();
             if (DEBUG)
             {
-                inputs.Print();
+                inputs.Debug("Entrées");
             }
             Matrice buffer = weights.Multiply(inputs); // On multiplie les entrées par les poids
             if (DEBUG)
             {
-                buffer.Print();
+                buffer.Debug("Sortie Nette");
             }
             buffer = buffer.Sum(); // On en fait la somme
             if (DEBUG)
             {
-                buffer.Print();
+                buffer.Debug("Sortie sommée");
             }
             buffer = buffer.Function(Sigmoid); // On fait passer le buffer dans la fonction d'activation (sigmoid)
             if (DEBUG)
             {
-                buffer.Print();
+                buffer.Debug("Sortie sigmoid");
             }
 
             output = buffer.Copy();

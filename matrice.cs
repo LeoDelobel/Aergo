@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AERGO
 {
-    class Matrice
+    public class Matrice
     {
-        private int lignes;
-        private int colonnes;
+        public int lignes;
+        public int colonnes;
         public double[,] valeurs; // Les valeurs sont un tableau 2D
+
+        [JsonIgnore]
         Random R = new Random();
 
         public Matrice(int l, int c) // Constructeur
@@ -20,6 +19,11 @@ namespace AERGO
             valeurs = new double[l,c]; // Initialisation du tableau 2D
 
             Fill(0); // On remplit à 0
+        }
+
+        public Matrice() // Constructeur
+        {
+
         }
 
         public void Fill(double val)

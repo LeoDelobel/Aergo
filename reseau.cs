@@ -1,19 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace AERGO
 {
-    class Reseau
+    public class Reseau
     {
-        bool DEBUG = false;
-        Matrice input;
-        Couche[] couches;
-        Matrice output;
-        public double mean_error = 0;
         public double learning_rate = 0.1;
+        public TimeSpan time_trained;
+        public Couche[] couches;
+
+        [JsonIgnore]
+        public Matrice input;
+        [JsonIgnore]
+        public Matrice output;
+        [JsonIgnore]
+        public double mean_error = 0;
+        [JsonIgnore]
+        bool DEBUG = false;
 
         public Reseau(int nb_i, int[] nb_c, int nb_o)
             //nb_i : Nombre d'entrées
@@ -29,6 +34,11 @@ namespace AERGO
                 couches[i] = new Couche(nb_c[i], nb_c[i-1]); // Autant d'entrées que le nombre de neurones précédents
             }
             couches[couches.Length-1] = new Couche(nb_o, nb_c[nb_c.Length-1]); // Couche de sortie
+        }
+
+        public Reseau()
+        {
+
         }
 
         public void SetLearningRate(double val)
@@ -53,6 +63,8 @@ namespace AERGO
             {
                 Console.WriteLine("Couche 1 ");
                 Console.WriteLine("-----------------------------------------------------");
+                couches[0].inputs.Debug("ENTREE");
+                couches[0].weights.Debug("POIDS");
             }
             for (int i = 1; i < couches.Length; i++)
             {
@@ -61,6 +73,7 @@ namespace AERGO
                 {
                     Console.WriteLine("Couche " + Convert.ToString(i + 1)); // On donne la sortie des couches aux couches suivantes
                     Console.WriteLine("-----------------------------------------------------");
+                    couches[i].output.Debug("");
                 }
             }
             output = buffer.Copy();
@@ -89,7 +102,6 @@ namespace AERGO
 
         public void Train(double[] entree, double[] attendu)
         {
-
             Matrice val = new Matrice(entree.Length, 1).FromArrayVector(entree);
 
             Matrice Yattendu = new Matrice(attendu.Length, 1).FromArrayVector(attendu);
@@ -174,6 +186,16 @@ namespace AERGO
             this.couches[0].UpdateWeights();
         }
 
+        public void Save()
+        {
+            string out_ = JsonConvert.SerializeObject(this, Formatting.Indented, new JsonSerializerSettings { MaxDepth = int.MaxValue });
+            System.IO.File.WriteAllText(@"../network_config.ini", out_);
+        }
 
+        static public Reseau Load()
+        {
+            string in_ = File.ReadAllText(@"../network_config.ini");
+            return JsonConvert.DeserializeObject<Reseau>(in_, new JsonSerializerSettings { MaxDepth = int.MaxValue });
+        }
     }
 }
